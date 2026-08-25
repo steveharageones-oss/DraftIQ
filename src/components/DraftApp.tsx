@@ -238,6 +238,10 @@ export function DraftApp({
             {visible.length} player{visible.length === 1 ? "" : "s"} available
             {otherTakenIds.length > 0 ? ` · ${otherTakenIds.length} taken` : ""}
           </p>
+          <p className="mt-0.5 text-[10px] text-zinc-600">
+            <span className="text-red-400">Out</span> · <span className="text-amber-300">Q</span>{" "}
+            = questionable · <span className="text-orange-300">D</span> = doubtful
+          </p>
           <ul className="mt-1 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/40">
             {visible.map((p) => (
               <PlayerRow

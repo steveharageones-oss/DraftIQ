@@ -7,6 +7,7 @@ import type {
 } from "./types";
 import { DEFAULT_ROSTER_SLOTS, DEFAULT_SCORING } from "./types";
 import { isLlmEnabled, chatJson } from "./ai/llm";
+import { injuryInfo } from "./status";
 
 const FLEX_POSITIONS: FantasyPosition[] = ["RB", "WR", "TE"];
 
@@ -119,8 +120,9 @@ function heuristicAdvice(marked: MarkedPlayer[], analysis: RosterAnalysis): Reco
   const style = needStart ? "start" : needFlex ? "flex" : "value";
 
   const notes: string[] = [];
-  if (top.injury_status || (top.status && top.status !== "Active")) {
-    notes.push(`Status: ${top.status ?? top.injury_status}${top.injury_status ? ` (${top.injury_status})` : ""} — verify before committing.`);
+  const inj = injuryInfo(top);
+  if (inj.tone !== "none") {
+    notes.push(`Status: ${inj.label}${inj.part ? ` — ${inj.part}` : ""} — verify before committing.`);
   }
   if (top.adp != null) {
     notes.push(`Expert ADP ~${Math.round(top.adp)} nearby, so this is fair value.`);

@@ -1,6 +1,7 @@
 "use client";
 
 import type { BoardPlayer } from "@/lib/types";
+import { injuryInfo } from "@/lib/status";
 
 const POS_COLOR: Record<string, string> = {
   QB: "bg-sky-500",
@@ -9,6 +10,18 @@ const POS_COLOR: Record<string, string> = {
   TE: "bg-amber-500",
   DEF: "bg-slate-500",
   K: "bg-slate-500",
+};
+
+const BADGE: Record<string, string> = {
+  out: "bg-red-500/20 text-red-300",
+  doubtful: "bg-orange-500/20 text-orange-300",
+  q: "bg-amber-500/20 text-amber-300",
+};
+
+const BADGE_LABEL: Record<string, string> = {
+  out: "Out",
+  doubtful: "D",
+  q: "Q",
 };
 
 export function PlayerRow({
@@ -20,7 +33,7 @@ export function PlayerRow({
   onPick: (player: BoardPlayer) => void;
   onTaken: (player: BoardPlayer) => void;
 }) {
-  const injured = Boolean(player.injury_status && player.injury_status !== "Active");
+  const inj = injuryInfo(player);
   const posColor = POS_COLOR[player.position] ?? "bg-slate-500";
 
   return (
@@ -34,9 +47,12 @@ export function PlayerRow({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <p className="truncate text-sm font-medium text-zinc-100">{player.full_name}</p>
-          {injured && (
-            <span className="shrink-0 rounded bg-red-500/20 px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-300">
-              Out
+          {inj.tone !== "none" && (
+            <span
+              className={`shrink-0 rounded px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${BADGE[inj.tone]}`}
+              title={inj.part ? `${inj.label}${inj.part ? ` — ${inj.part}` : ""}` : inj.label ?? undefined}
+            >
+              {BADGE_LABEL[inj.tone]}
             </span>
           )}
         </div>
