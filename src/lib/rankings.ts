@@ -50,6 +50,7 @@ export function buildBoard(
     pos: FantasyPosition;
     value: number;
     adp: number | null;
+    page: string | null;
     source: RankSource;
     sortKey: number;
   }> = [];
@@ -88,6 +89,7 @@ export function buildBoard(
       pos,
       value: clamp(value, 5, 100),
       adp,
+      page: entry?.page ?? null,
       source,
       sortKey,
     });
@@ -114,6 +116,7 @@ export function buildBoard(
     value: b.value,
     rank: 0,
     adp: b.adp,
+    page: b.page,
     source: b.source,
   }));
 

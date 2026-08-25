@@ -80,6 +80,7 @@ const out = list.map((o) => ({
   rank: o.rank_ecr ?? null,
   adp: o.rank_ave ?? null,
   team: o.player_team_id ?? null, // used to match team defenses (DST)
+  page: o.player_filename ?? null, // e.g. "james-cook.php" — for the player info card
 }));
 
 await writeFile("src/data/rankings.json", JSON.stringify(out, null, 2) + "\n", "utf8");

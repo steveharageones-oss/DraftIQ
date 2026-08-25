@@ -9,6 +9,7 @@ interface RawRanking {
   rank: number | null;
   adp: string | number | null;
   team?: string | null;
+  page?: string | null;
 }
 
 /**
@@ -25,5 +26,6 @@ export function getCustomRankings(): RankedEntry[] {
     adp: e.adp == null || e.adp === "" ? null : Number(e.adp),
     percentOwned: null,
     team: e.team ?? null,
+    page: e.page ?? null,
   }));
 }

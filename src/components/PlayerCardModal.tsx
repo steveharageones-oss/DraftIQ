@@ -1,6 +1,7 @@
 "use client";
 
 import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
 import type { BoardPlayer } from "@/lib/types";
 import { injuryInfo } from "@/lib/status";
 
@@ -13,13 +14,12 @@ const POS_COLOR: Record<string, string> = {
   K: "bg-slate-500",
 };
 
-function outlookFromRank(rank: number): string {
-  if (rank <= 5) return "Elite — an early first-round pick.";
-  if (rank <= 12) return "Round 1 — a top-tier starter.";
-  if (rank <= 24) return "Round 2 — a clear everyday starter.";
-  if (rank <= 48) return "Rounds 3–5 — a solid starter.";
-  if (rank <= 100) return "Mid-round — starter / bench depth.";
-  return "Late-round — value, bench depth, or a sleeper.";
+interface PlayerInfo {
+  ecr: string | null;
+  adp: string | null;
+  bestWorst: string | null;
+  rostered: string | null;
+  outlook: string | null;
 }
 
 export function PlayerCardModal({
@@ -31,6 +31,42 @@ export function PlayerCardModal({
 }) {
   const inj = injuryInfo(player);
   const posColor = POS_COLOR[player.position] ?? "bg-slate-500";
+  const [info, setInfo] = useState<PlayerInfo | null>(null);
+  const [loading, setLoading] = useState(Boolean(player.page));
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!player.page) {
+      setLoading(false);
+      setError("No outlook available for this player in the free feed.");
+      return;
+    }
+    setLoading(true);
+    setInfo(null);
+    setError(null);
+    fetch(`/api/player?page=${encodeURIComponent(player.page)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data: { ok: boolean } & Partial<PlayerInfo>) => {
+        if (cancelled) return;
+        setInfo({
+          ecr: data.ecr ?? null,
+          adp: data.adp ?? null,
+          bestWorst: data.bestWorst ?? null,
+          rostered: data.rostered ?? null,
+          outlook: data.outlook ?? null,
+        });
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLoading(false);
+        setError("Couldn't load the outlook right now.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [player.player_id, player.page]);
 
   const modal = (
     <div
@@ -66,21 +102,16 @@ export function PlayerCardModal({
           </button>
         </div>
 
-        {/* Status */}
+        {/* Status chips */}
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span
-            className={`rounded bg-zinc-800 px-2 py-1 text-[11px] font-semibold text-zinc-300`}
-          >
+          <span className="rounded bg-zinc-800 px-2 py-1 text-[11px] font-semibold text-zinc-300">
             Rank #{player.rank}
           </span>
-          {player.adp != null ? (
+          {player.adp != null && (
             <span className="rounded bg-zinc-800 px-2 py-1 text-[11px] font-semibold text-zinc-300">
               ADP ~{player.adp.toFixed(1)}
             </span>
-          ) : null}
-          <span className="rounded bg-zinc-800 px-2 py-1 text-[11px] font-semibold text-zinc-300">
-            Value {player.value.toFixed(1)}
-          </span>
+          )}
           {inj.tone !== "none" && (
             <span
               className={`rounded px-2 py-1 text-[11px] font-semibold ${
@@ -97,30 +128,46 @@ export function PlayerCardModal({
           )}
         </div>
 
+        {/* Expert consensus strip */}
+        {info && (info.ecr || info.adp || info.bestWorst || info.rostered) && (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {info.ecr && <Chip label="Overall (ECR)" value={info.ecr} />}
+            {info.adp && <Chip label="ADP" value={info.adp} />}
+            {info.bestWorst && <Chip label="Best / Worst" value={info.bestWorst} />}
+            {info.rostered && <Chip label="Rostered" value={info.rostered} />}
+          </div>
+        )}
+
         {/* Outlook */}
         <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-            This-season outlook
-          </p>
-          <p className="mt-1 text-sm leading-relaxed text-zinc-200">
-            {outlookFromRank(player.rank)}
-          </p>
-        </div>
-
-        {/* Last season */}
-        <div className="mt-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-            Last season
-          </p>
-          <p className="mt-1 text-sm leading-relaxed text-zinc-400">
-            Deep stats (last-season numbers and projections) aren&apos;t in the free data feed yet —
-            this card shows rank, ADP, and outlook. I can wire a full stats feed (e.g., FantasyPros
-            API) if you&apos;d like actual numbers.
-          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Outlook</p>
+          {loading ? (
+            <div className="mt-2 flex items-center gap-2 text-sm text-zinc-400">
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-500 border-t-transparent" />
+              Loading outlook…
+            </div>
+          ) : error ? (
+            <p className="mt-1 text-sm text-zinc-400">{error}</p>
+          ) : info?.outlook ? (
+            <p className="mt-1 text-sm leading-relaxed text-zinc-200">{info.outlook}</p>
+          ) : (
+            <p className="mt-1 text-sm text-zinc-400">
+              No outlook available for this player in the free feed.
+            </p>
+          )}
         </div>
       </div>
     </div>
   );
 
   return typeof document !== "undefined" ? createPortal(modal, document.body) : null;
+}
+
+function Chip({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-zinc-800 bg-zinc-950/40 px-2.5 py-1.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">{label}</p>
+      <p className="text-sm text-zinc-100">{value}</p>
+    </div>
+  );
 }

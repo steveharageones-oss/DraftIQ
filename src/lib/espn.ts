@@ -20,6 +20,7 @@ export interface RankedEntry {
   adp: number | null;
   percentOwned: number | null;
   team?: string | null; // used to match team defenses (DST) by abbreviation
+  page?: string | null; // FantasyPros player page slug (e.g. "james-cook.php")
 }
 
 const ESPN_POS: Record<number, FantasyPosition> = {

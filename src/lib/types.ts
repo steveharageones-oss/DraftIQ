@@ -42,6 +42,8 @@ export interface BoardPlayer {
   rank: number;
   /** Expert ADP if a provider supplied it, else null. */
   adp: number | null;
+  /** FantasyPros player-page slug (e.g. "james-cook.php"), for the info card. */
+  page?: string | null;
   /** Source that produced this ordering/value: "builtin" | "espn" | "custom". */
   source: "builtin" | "espn" | "custom";
 }
