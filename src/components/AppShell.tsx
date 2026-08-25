@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useLeagues, type LeaguePlatform } from "@/lib/leagues";
 import type { RosterSlotCounts } from "@/lib/types";
 import { DraftApp } from "./DraftApp";
@@ -39,6 +39,45 @@ export function AppShell() {
   const [renaming, setRenaming] = useState(false);
   const [resetNonce, setResetNonce] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
+  const [yahooStatus, setYahooStatus] = useState<"idle" | "connected" | "error">("idle");
+  const [yahooLeagues, setYahooLeagues] = useState<{ key: string; name: string }[]>([]);
+  const [loadingLeagues, setLoadingLeagues] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("yahoo") === "connected") {
+      setYahooStatus("connected");
+      params.delete("yahoo");
+      const clean = params.toString() ? `?${params}` : window.location.pathname;
+      window.history.replaceState(null, "", clean);
+    } else if (params.get("yahoo") === "error") {
+      setYahooStatus("error");
+      params.delete("yahoo");
+      const clean = params.toString() ? `?${params}` : window.location.pathname;
+      window.history.replaceState(null, "", clean);
+    }
+  }, []);
+
+  const loadYahooLeagues = async () => {
+    setLoadingLeagues(true);
+    try {
+      const res = await fetch("/api/yahoo/leagues", { cache: "no-store" });
+      if (!res.ok) throw new Error();
+      const data = (await res.json()) as { leagues: { key: string; name: string }[] };
+      setYahooLeagues(data.leagues ?? []);
+      setYahooStatus("connected");
+    } catch {
+      setYahooStatus("error");
+    } finally {
+      setLoadingLeagues(false);
+    }
+  };
+
+  const addYahooLeague = (key: string, lgName: string) => {
+    if (leagues.some((l) => l.externalId === key)) return;
+    addLeague(lgName || "Yahoo League", "yahoo", key);
+  };
 
   const resetConfirm = () => {
     if (!activeLeague) return;
@@ -84,6 +123,63 @@ export function AppShell() {
 
   return (
     <div className="mx-auto w-full max-w-md px-4 pb-28">
+      {/* Yahoo connect */}
+      <div className="mt-3 rounded-xl border border-purple-500/20 bg-purple-500/5 p-3">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold text-purple-300">
+            Yahoo <span className="font-normal text-zinc-500">· auto-load your leagues</span>
+          </p>
+          {yahooStatus === "connected" ? (
+            <span className="text-[11px] text-emerald-400">Connected ✓</span>
+          ) : yahooStatus === "error" ? (
+            <span className="text-[11px] text-red-400">Failed — scope may be blocked</span>
+          ) : null}
+        </div>
+
+        {yahooStatus === "connected" ? (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={loadYahooLeagues}
+              disabled={loadingLeagues}
+              className="rounded-lg bg-purple-500 px-3 py-1.5 text-xs font-semibold text-zinc-950 transition hover:bg-purple-400 disabled:opacity-40"
+            >
+              {loadingLeagues ? "Loading…" : "Load my Yahoo leagues"}
+            </button>
+          </div>
+        ) : (
+          <a
+            href="/api/yahoo/auth"
+            className="mt-2 inline-block rounded-lg bg-purple-500 px-3 py-1.5 text-xs font-semibold text-zinc-950 transition hover:bg-purple-400"
+          >
+            Connect Yahoo
+          </a>
+        )}
+
+        {yahooLeagues.length > 0 && (
+          <ul className="mt-2 space-y-1">
+            {yahooLeagues.map((lg) => (
+              <li key={lg.key} className="flex items-center justify-between text-sm">
+                <span className="truncate text-zinc-300">{lg.name}</span>
+                <button
+                  type="button"
+                  onClick={() => addYahooLeague(lg.key, lg.name)}
+                  className="ml-2 shrink-0 rounded bg-zinc-800 px-2 py-1 text-[11px] text-zinc-200 hover:bg-zinc-700"
+                >
+                  Add
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {yahooStatus === "error" && (
+          <p className="mt-2 text-[11px] text-zinc-500">
+            Yahoo may have rejected the fantasy scope — if so, this is a Yahoo restriction, not a
+            config mistake.
+          </p>
+        )}
+      </div>
+
       {/* League switcher */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-3">
         {leagues.map((l) => (
