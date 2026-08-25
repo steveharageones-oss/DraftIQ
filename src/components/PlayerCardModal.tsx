@@ -70,15 +70,15 @@ export function PlayerCardModal({
 
   const modal = (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 p-4 sm:items-center"
+      className="fixed inset-0 z-[100] overflow-y-auto bg-black/70 p-4"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"
+        className="mx-auto my-4 w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-900"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Sticky header: name + status, always visible */}
-        <div className="shrink-0 border-b border-zinc-800 bg-zinc-900/95 p-5 pb-3 backdrop-blur">
+        {/* Sticky header — stays pinned while the sheet scrolls */}
+        <div className="sticky top-0 z-10 shrink-0 rounded-t-2xl border-b border-zinc-800 bg-zinc-900 p-5 pb-3">
           <div className="flex items-center gap-3">
             <span
               className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-zinc-950 ${posColor}`}
@@ -130,8 +130,8 @@ export function PlayerCardModal({
           </div>
         </div>
 
-        {/* Scrollable body */}
-        <div className="min-h-0 flex-1 overflow-y-auto p-5 pt-4">
+        {/* Scrollable content */}
+        <div className="p-5 pt-4">
           {info && (info.ecr || info.adp || info.bestWorst || info.rostered) && (
             <div className="grid grid-cols-2 gap-2">
               {info.ecr && <Chip label="Overall (ECR)" value={info.ecr} />}
