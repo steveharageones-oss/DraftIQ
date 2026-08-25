@@ -8,6 +8,7 @@ interface RawRanking {
   position: string;
   rank: number | null;
   adp: string | number | null;
+  team?: string | null;
 }
 
 /**
@@ -18,9 +19,11 @@ interface RawRanking {
 export function getCustomRankings(): RankedEntry[] {
   return (rawRankings as RawRanking[]).map((e) => ({
     name: normalizeName(e.name),
-    position: e.position as FantasyPosition,
+    // FantasyPros uses "DST" for team defenses; we normalize to "DEF".
+    position: e.position === "DST" ? "DEF" : (e.position as FantasyPosition),
     rank: typeof e.rank === "number" ? e.rank : null,
     adp: e.adp == null || e.adp === "" ? null : Number(e.adp),
     percentOwned: null,
+    team: e.team ?? null,
   }));
 }

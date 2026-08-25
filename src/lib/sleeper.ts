@@ -8,6 +8,8 @@ const FANTASY_SAFE: Record<string, FantasyPosition> = {
   RB: "RB",
   WR: "WR",
   TE: "TE",
+  K: "K",
+  DEF: "DEF",
 };
 
 /**

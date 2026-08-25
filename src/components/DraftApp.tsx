@@ -7,7 +7,7 @@ import { PlayerRow } from "./PlayerRow";
 import { AdvicePanel } from "./AdvicePanel";
 import { MyTeam } from "./MyTeam";
 
-const POSITIONS = ["ALL", "QB", "RB", "WR", "TE"] as const;
+const POSITIONS = ["ALL", "QB", "RB", "WR", "TE", "K", "DST"] as const;
 type PosFilter = (typeof POSITIONS)[number];
 
 function slotTemplate(slots: League["slots"], ppr: number): string {
@@ -72,7 +72,9 @@ export function DraftApp({
 
   const visible = useMemo(() => {
     if (activePos === "ALL") return available;
-    return available.filter((p) => p.position === activePos);
+    // The "DST" tab maps to the DEF position (team defenses).
+    const targetPos = activePos === "DST" ? "DEF" : activePos;
+    return available.filter((p) => p.position === targetPos || p.positions.includes(targetPos));
   }, [available, activePos]);
 
   const draftedPlayers = useMemo(

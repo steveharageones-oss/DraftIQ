@@ -19,6 +19,7 @@ export interface RankedEntry {
   rank: number | null;
   adp: number | null;
   percentOwned: number | null;
+  team?: string | null; // used to match team defenses (DST) by abbreviation
 }
 
 const ESPN_POS: Record<number, FantasyPosition> = {

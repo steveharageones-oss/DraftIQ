@@ -11,7 +11,7 @@ import { writeFile } from "node:fs/promises";
 
 const DEFAULT_URL = "https://www.fantasypros.com/nfl/rankings/ppr-cheatsheets.php";
 const URL = process.argv[2] || DEFAULT_URL;
-const ALLOWED = new Set(["QB", "RB", "WR", "TE"]);
+const ALLOWED = new Set(["QB", "RB", "WR", "TE", "K", "DST"]);
 
 // Robustly extract balanced JS objects that begin with the player token.
 function extractObjects(html) {
@@ -79,6 +79,7 @@ const out = list.map((o) => ({
   position: o.player_position_id,
   rank: o.rank_ecr ?? null,
   adp: o.rank_ave ?? null,
+  team: o.player_team_id ?? null, // used to match team defenses (DST)
 }));
 
 await writeFile("src/data/rankings.json", JSON.stringify(out, null, 2) + "\n", "utf8");

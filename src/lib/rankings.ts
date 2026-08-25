@@ -32,6 +32,14 @@ export function buildBoard(
     const key = `${e.position}:${e.name}`;
     if (!rankedByName.has(key)) rankedByName.set(key, e);
   }
+  // Team defenses (DEF) have no player name, so match them by team abbreviation.
+  const rankedByTeam = new Map<string, RankedEntry>();
+  for (const e of rankings) {
+    if (e.position === "DEF" && e.team) {
+      const key = `DEF:${e.team.toUpperCase()}`;
+      if (!rankedByTeam.has(key)) rankedByTeam.set(key, e);
+    }
+  }
   const rankedCount = Math.max(rankings.length, 1);
 
   const tierByName = new Map<string, { tier: 1 | 2 | 3 | 4 | 5 | 6; position: FantasyPosition }>();
@@ -49,7 +57,9 @@ export function buildBoard(
   for (const player of players) {
     const pos = primaryPosition(player);
     const nameKey = `${pos}:${normalizeName(player.full_name)}`;
-    const entry = rankedByName.get(nameKey);
+    const entry =
+      rankedByName.get(nameKey) ??
+      (pos === "DEF" && player.team ? rankedByTeam.get(`DEF:${player.team.toUpperCase()}`) : undefined);
     const tierEntry = tierByName.get(nameKey);
 
     let value: number;
@@ -88,9 +98,11 @@ export function buildBoard(
 
   const board: BoardPlayer[] = baselines.map((b) => ({
     player_id: b.player.player_id,
-    full_name: b.player.full_name,
-    first_name: b.player.first_name,
-    last_name: b.player.last_name,
+    full_name:
+      b.player.full_name ||
+      (b.pos === "DEF" && b.player.team ? `${b.player.team} D/ST` : b.player.full_name),
+    first_name: b.player.first_name || "",
+    last_name: b.player.last_name || "",
     position: b.pos,
     positions: playerEligiblePositions(b.player),
     team: b.player.team,

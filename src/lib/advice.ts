@@ -95,8 +95,15 @@ function buildReason(top: MarkedPlayer, analysis: RosterAnalysis, style: "start"
   }
 }
 
+// Prefer core skill players (QB/RB/WR/TE); only fall back to K/DEF when nothing
+// else is left, so the assistant doesn't suggest a kicker in the early rounds.
+function filterAvailable(marked: MarkedPlayer[]): MarkedPlayer[] {
+  const core = marked.filter((p) => !p.drafted && p.position !== "K" && p.position !== "DEF");
+  return core.length ? core : marked.filter((p) => !p.drafted);
+}
+
 function heuristicAdvice(marked: MarkedPlayer[], analysis: RosterAnalysis): Recommendation {
-  const available = marked.filter((p) => !p.drafted);
+  const available = filterAvailable(marked);
   if (available.length === 0) throw new Error("No available players left to recommend.");
 
   const scored = available
@@ -175,7 +182,7 @@ async function generateLlmAdvice(
   scoring: ScoringSettings,
   llmConfig: { apiKey?: string; model?: string; baseUrl?: string },
 ): Promise<Recommendation> {
-  const available = marked.filter((p) => !p.drafted).slice(0, 50);
+  const available = filterAvailable(marked).slice(0, 50);
   if (available.length === 0) throw new Error("No players left");
 
   const boardContext = available
