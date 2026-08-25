@@ -1,6 +1,6 @@
 "use client";
 
-import type { BoardPlayer } from "@/lib/types";
+import type { BoardPlayer, RosterSlotCounts } from "@/lib/types";
 import { DEFAULT_ROSTER_SLOTS } from "@/lib/types";
 import { buildLineup, isLineupComplete } from "@/lib/lineup";
 
@@ -40,12 +40,15 @@ function Slot({
 export function MyTeam({
   drafted,
   onRemove,
+  slots,
 }: {
   drafted: BoardPlayer[];
   onRemove: (id: string) => void;
+  slots?: RosterSlotCounts;
 }) {
-  const lineup = buildLineup(drafted, DEFAULT_ROSTER_SLOTS);
-  const complete = isLineupComplete(lineup, DEFAULT_ROSTER_SLOTS);
+  const s = slots ?? DEFAULT_ROSTER_SLOTS;
+  const lineup = buildLineup(drafted, s);
+  const complete = isLineupComplete(lineup, s);
   const hasAny = drafted.length > 0;
 
   return (
@@ -73,7 +76,9 @@ export function MyTeam({
             <Slot key={p.player_id} label={`WR${i + 1}`} player={p} onRemove={onRemove} />
           ))}
           <Slot label="TE" player={lineup.TE} onRemove={onRemove} />
-          {lineup.FLEX && <Slot label="FLEX" player={lineup.FLEX} onRemove={onRemove} />}
+          {lineup.FLEX.map((p, i) => (
+            <Slot key={p.player_id} label={`FLEX ${i + 1}`} player={p} onRemove={onRemove} />
+          ))}
         </div>
       )}
 

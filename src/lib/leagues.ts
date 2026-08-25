@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DEFAULT_ROSTER_SLOTS, type RosterSlotCounts } from "./types";
 
 export type LeaguePlatform = "manual" | "espn" | "yahoo";
 
@@ -15,6 +16,8 @@ export interface League {
   season?: string;
   createdAt: number;
   draftState: LeagueDraftState;
+  slots: RosterSlotCounts;
+  ppr: number; // points per reception (1.0 = full PPR, 0 = standard)
 }
 
 const LEAGUES_KEY = "draftiq.leagues";
@@ -32,6 +35,8 @@ export function defaultLeague(name = "My League", platform: LeaguePlatform = "ma
     platform,
     createdAt: Date.now(),
     draftState: { draftedIds: [], otherTakenIds: [] },
+    slots: { ...DEFAULT_ROSTER_SLOTS },
+    ppr: 1,
   };
 }
 
@@ -40,7 +45,13 @@ function loadLeagues(): League[] {
     const raw = localStorage.getItem(LEAGUES_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as League[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Normalize for any leagues saved before slots/ppr existed.
+    return parsed.map((l) => ({
+      ...l,
+      slots: l.slots ?? { ...DEFAULT_ROSTER_SLOTS },
+      ppr: typeof l.ppr === "number" ? l.ppr : 1,
+    }));
   } catch {
     return [];
   }
@@ -132,6 +143,16 @@ export function useLeagues() {
     );
   };
 
+  const updateLeagueSettings = (
+    id: string,
+    partial: { slots?: RosterSlotCounts; ppr?: number },
+  ) => {
+    commit(
+      leagues.map((l) => (l.id === id ? { ...l, ...partial } : l)),
+      activeId ?? leagues[0]?.id ?? "",
+    );
+  };
+
   const activeLeague = leagues.find((l) => l.id === activeId) ?? leagues[0] ?? null;
   const activeLeagueId = activeLeague?.id ?? null;
 
@@ -146,5 +167,6 @@ export function useLeagues() {
     updateDraftState,
     deleteLeague,
     resetLeague,
+    updateLeagueSettings,
   };
 }

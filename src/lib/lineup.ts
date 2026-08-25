@@ -5,7 +5,7 @@ export interface Lineup {
   RB: BoardPlayer[];
   WR: BoardPlayer[];
   TE: BoardPlayer | null;
-  FLEX: BoardPlayer | null;
+  FLEX: BoardPlayer[];
   bench: BoardPlayer[];
 }
 
@@ -13,15 +13,14 @@ const FLEX_POSITIONS: FantasyPosition[] = ["RB", "WR", "TE"];
 
 /**
  * Build a starting lineup from the players you've drafted, given the league's
- * starting slots (1 QB / 2 RB / 2 WR / 1 TE / 1 FLEX by default). Best players
- * (by value) fill each slot; the best leftover RB/WR/TE fills FLEX; the rest
- * go to the bench.
+ * starting slots. Best players (by value) fill each slot; the best leftover
+ * RB/WR/TE fill FLEX; the rest go to the bench.
  */
 export function buildLineup(drafted: BoardPlayer[], slots: RosterSlotCounts): Lineup {
   const sorted = [...drafted].sort((a, b) => b.value - a.value);
   const byPos = (pos: FantasyPosition) => sorted.filter((p) => p.position === pos);
 
-  const lineup: Lineup = { QB: null, RB: [], WR: [], TE: null, FLEX: null, bench: [] };
+  const lineup: Lineup = { QB: null, RB: [], WR: [], TE: null, FLEX: [], bench: [] };
 
   // Core slots.
   const qbs = byPos("QB");
@@ -48,13 +47,9 @@ export function buildLineup(drafted: BoardPlayer[], slots: RosterSlotCounts): Li
 
   // FLEX: fill up to the FLEX count with best leftover flex-eligible players.
   const flexCount = slots.FLEX ?? 0;
-  lineup.FLEX = flexCount > 0 ? leftover[0] ?? null : null;
+  lineup.FLEX = leftover.slice(0, flexCount);
 
-  const flexUsed = new Set<string>();
-  for (let i = 0; i < flexCount; i++) {
-    const p = leftover[i];
-    if (p) flexUsed.add(p.player_id);
-  }
+  const flexUsed = new Set(lineup.FLEX.map((p) => p.player_id));
 
   // Everything not used as a starter is bench.
   lineup.bench = sorted.filter((p) => !used.has(p.player_id) && !flexUsed.has(p.player_id));
@@ -69,6 +64,6 @@ export function isLineupComplete(lineup: Lineup, slots: RosterSlotCounts): boole
     lineup.RB.length >= slots.RB &&
     lineup.WR.length >= slots.WR &&
     Boolean(lineup.TE) &&
-    (slots.FLEX === 0 || Boolean(lineup.FLEX))
+    lineup.FLEX.length >= (slots.FLEX ?? 0)
   );
 }

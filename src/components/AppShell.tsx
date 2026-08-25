@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useLeagues, type LeaguePlatform } from "@/lib/leagues";
+import type { RosterSlotCounts } from "@/lib/types";
 import { DraftApp } from "./DraftApp";
 
 const PLATFORM_LABEL: Record<LeaguePlatform, string> = {
@@ -28,6 +29,7 @@ export function AppShell() {
     updateDraftState,
     resetLeague,
     deleteLeague,
+    updateLeagueSettings,
   } = useLeagues();
 
   const [showAdd, setShowAdd] = useState(false);
@@ -36,6 +38,7 @@ export function AppShell() {
   const [externalId, setExternalId] = useState("");
   const [renaming, setRenaming] = useState(false);
   const [resetNonce, setResetNonce] = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
 
   const resetConfirm = () => {
     if (!activeLeague) return;
@@ -48,6 +51,17 @@ export function AppShell() {
     if (!activeLeague) return;
     if (!window.confirm(`Delete "${activeLeague.name}"? This can't be undone.`)) return;
     deleteLeague(activeLeague.id);
+  };
+
+  const setSlot = (key: keyof RosterSlotCounts, raw: string) => {
+    if (!activeLeague) return;
+    const v = Math.max(0, Math.min(15, Number(raw) || 0));
+    updateLeagueSettings(activeLeague.id, { slots: { ...activeLeague.slots, [key]: v } });
+  };
+
+  const setPpr = (v: number) => {
+    if (!activeLeague) return;
+    updateLeagueSettings(activeLeague.id, { ppr: v });
   };
 
   const persistState = useCallback(
@@ -195,6 +209,13 @@ export function AppShell() {
           <div className="ml-auto flex items-center gap-2">
             <button
               type="button"
+              onClick={() => setShowSettings((s) => !s)}
+              className="text-[11px] text-zinc-500 transition hover:text-emerald-300"
+            >
+              ⚙ Settings
+            </button>
+            <button
+              type="button"
               onClick={resetConfirm}
               className="text-[11px] text-zinc-500 transition hover:text-zinc-200"
             >
@@ -208,6 +229,56 @@ export function AppShell() {
               Delete
             </button>
             <span className="text-[11px] text-zinc-600">{PLATFORM_LABEL[activeLeague.platform]}</span>
+          </div>
+        </div>
+      )}
+
+      {/* League settings */}
+      {activeLeague && showSettings && (
+        <div className="mt-2 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-zinc-300">Roster & scoring</p>
+            <button type="button" onClick={() => setShowSettings(false)} className="text-xs text-zinc-500 hover:text-zinc-200">
+              Done
+            </button>
+          </div>
+          <div className="mt-2 grid grid-cols-5 gap-2">
+            {(["QB", "RB", "WR", "TE", "FLEX"] as const).map((k) => (
+              <label key={k} className="flex flex-col items-center">
+                <span className="text-[10px] uppercase tracking-wide text-zinc-500">{k}</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={15}
+                  value={activeLeague.slots[k]}
+                  onChange={(e) => setSlot(k, e.target.value)}
+                  className="mt-1 w-full rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-center text-sm text-zinc-100 outline-none focus:border-emerald-500"
+                />
+              </label>
+            ))}
+          </div>
+          <div className="mt-3">
+            <p className="text-xs font-medium text-zinc-400">Scoring (points per reception)</p>
+            <div className="mt-1.5 flex gap-2">
+              {[
+                { label: "Standard (0)", v: 0 },
+                { label: "0.5 PPR", v: 0.5 },
+                { label: "Full PPR (1)", v: 1 },
+              ].map((o) => (
+                <button
+                  key={o.v}
+                  type="button"
+                  onClick={() => setPpr(o.v)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                    activeLeague.ppr === o.v
+                      ? "bg-emerald-500 text-zinc-950"
+                      : "bg-zinc-900 text-zinc-400 hover:text-zinc-100"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}

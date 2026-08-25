@@ -10,7 +10,10 @@ import { MyTeam } from "./MyTeam";
 const POSITIONS = ["ALL", "QB", "RB", "WR", "TE"] as const;
 type PosFilter = (typeof POSITIONS)[number];
 
-const SLOT_TEMPLATE = "1 QB · 2 RB · 2 WR · 1 TE · 1 FLEX · full PPR";
+function slotTemplate(slots: League["slots"], ppr: number): string {
+  const pprLabel = ppr >= 1 ? "full PPR" : ppr > 0 ? `${ppr} PPR` : `standard (${ppr} PPR)`;
+  return `${slots.QB} QB · ${slots.RB} RB · ${slots.WR} WR · ${slots.TE} TE · ${slots.FLEX} FLEX · ${pprLabel}`;
+}
 
 export function DraftApp({
   league,
@@ -95,6 +98,8 @@ export function DraftApp({
           body: JSON.stringify({
             draftedPlayerIds: drafted,
             unavailablePlayerIds: unavailableIds,
+            slots: league.slots,
+            scoring: { ppr: league.ppr },
           }),
         });
         if (!res.ok) {
@@ -109,7 +114,7 @@ export function DraftApp({
         setAdviceLoading(false);
       }
     },
-    [],
+    [league.slots, league.ppr],
   );
 
   const pick = useCallback(
@@ -167,7 +172,7 @@ export function DraftApp({
 
   return (
     <div className="mx-auto w-full max-w-md px-4 pb-28">
-      <MyTeam drafted={draftedPlayers} onRemove={removeMyPick} />
+      <MyTeam drafted={draftedPlayers} onRemove={removeMyPick} slots={league.slots} />
 
       {/* Suggest */}
       <div className="mt-4">
@@ -180,7 +185,7 @@ export function DraftApp({
           {adviceLoading ? "Thinking…" : "Suggest my next pick"}
         </button>
         <p className="mt-2 text-center text-[11px] text-zinc-600">
-          {SLOT_TEMPLATE} ·{" "}
+          {slotTemplate(league.slots, league.ppr)} ·{" "}
           {boardSource === "custom"
             ? "FantasyPros consensus active"
             : boardSource === "espn"
