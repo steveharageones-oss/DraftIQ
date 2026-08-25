@@ -32,6 +32,7 @@ export function DraftApp({
   const [activePos, setActivePos] = useState<PosFilter>("ALL");
   const [showTaken, setShowTaken] = useState(false);
   const [selected, setSelected] = useState<BoardPlayer | null>(null);
+  const [query, setQuery] = useState("");
   const [advice, setAdvice] = useState<Recommendation | null>(null);
   const [adviceLoading, setAdviceLoading] = useState(false);
   const [adviceError, setAdviceError] = useState<string | null>(null);
@@ -73,11 +74,18 @@ export function DraftApp({
   );
 
   const visible = useMemo(() => {
+    // Search overrides the position tab so you can find any player by name/team.
+    const q = query.trim().toLowerCase();
+    if (q) {
+      return available.filter((p) =>
+        `${p.full_name} ${p.team ?? ""}`.toLowerCase().includes(q),
+      );
+    }
     if (activePos === "ALL") return available;
     // The "DST" tab maps to the DEF position (team defenses).
     const targetPos = activePos === "DST" ? "DEF" : activePos;
     return available.filter((p) => p.position === targetPos || p.positions.includes(targetPos));
-  }, [available, activePos]);
+  }, [available, activePos, query]);
 
   const draftedPlayers = useMemo(
     () => draftedIds.map((id) => playerById.get(id)).filter((p): p is BoardPlayer => Boolean(p)),
@@ -202,8 +210,42 @@ export function DraftApp({
         <AdvicePanel advice={advice} loading={adviceLoading} error={adviceError} onPick={pick} />
       </div>
 
+      {/* Search */}
+      <div className="mt-5">
+        <div className="relative">
+          <svg
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search players or teams…"
+            className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-2.5 pl-10 pr-10 text-sm text-zinc-100 outline-none transition focus:border-emerald-500"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-200"
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Position filter */}
-      <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
         {POSITIONS.map((pos) => (
           <button
             key={pos}
@@ -256,7 +298,11 @@ export function DraftApp({
             ))}
             {visible.length === 0 && (
               <li className="px-4 py-8 text-center text-sm text-zinc-500">
-                {activePos !== "ALL" ? "Everyone at this position is taken." : "No players left on the board."}
+                {query.trim()
+                  ? "No players match your search."
+                  : activePos !== "ALL"
+                    ? "Everyone at this position is taken."
+                    : "No players left on the board."}
               </li>
             )}
           </ul>
