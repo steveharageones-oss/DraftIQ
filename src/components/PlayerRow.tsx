@@ -28,10 +28,12 @@ export function PlayerRow({
   player,
   onPick,
   onTaken,
+  onOpen,
 }: {
   player: BoardPlayer;
   onPick: (player: BoardPlayer) => void;
   onTaken: (player: BoardPlayer) => void;
+  onOpen: (player: BoardPlayer) => void;
 }) {
   const inj = injuryInfo(player);
   const posColor = POS_COLOR[player.position] ?? "bg-slate-500";
@@ -44,7 +46,12 @@ export function PlayerRow({
 
       <span className={`h-6 w-1 rounded-full ${posColor}`} />
 
-      <div className="min-w-0 flex-1">
+      <button
+        type="button"
+        onClick={() => onOpen(player)}
+        className="min-w-0 flex-1 text-left"
+        aria-label={`View ${player.full_name}`}
+      >
         <div className="flex items-center gap-1.5">
           <p className="truncate text-sm font-medium text-zinc-100">{player.full_name}</p>
           {inj.tone !== "none" && (
@@ -61,7 +68,7 @@ export function PlayerRow({
           {player.team ? ` · ${player.team}` : ""}
           {player.age != null ? ` · ${player.age}` : ""}
         </p>
-      </div>
+      </button>
 
       <div className="shrink-0 text-right">
         <p className="text-sm font-semibold tabular-nums text-zinc-200">{player.value.toFixed(1)}</p>

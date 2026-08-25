@@ -6,6 +6,7 @@ import type { League } from "@/lib/leagues";
 import { PlayerRow } from "./PlayerRow";
 import { AdvicePanel } from "./AdvicePanel";
 import { MyTeam } from "./MyTeam";
+import { PlayerCardModal } from "./PlayerCardModal";
 
 const POSITIONS = ["ALL", "QB", "RB", "WR", "TE", "K", "DST"] as const;
 type PosFilter = (typeof POSITIONS)[number];
@@ -30,6 +31,7 @@ export function DraftApp({
   const [otherTakenIds, setOtherTakenIds] = useState<string[]>(league.draftState.otherTakenIds);
   const [activePos, setActivePos] = useState<PosFilter>("ALL");
   const [showTaken, setShowTaken] = useState(false);
+  const [selected, setSelected] = useState<BoardPlayer | null>(null);
   const [advice, setAdvice] = useState<Recommendation | null>(null);
   const [adviceLoading, setAdviceLoading] = useState(false);
   const [adviceError, setAdviceError] = useState<string | null>(null);
@@ -249,6 +251,7 @@ export function DraftApp({
                 player={p}
                 onPick={(pl) => pick(pl.player_id)}
                 onTaken={(pl) => markTaken(pl.player_id)}
+                onOpen={(pl) => setSelected(pl)}
               />
             ))}
             {visible.length === 0 && (
@@ -295,6 +298,8 @@ export function DraftApp({
           )}
         </>
       )}
+
+      {selected && <PlayerCardModal player={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }
