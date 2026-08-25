@@ -70,91 +70,94 @@ export function PlayerCardModal({
 
   const modal = (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center overflow-y-auto bg-black/70 p-4 sm:items-center"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 p-4 sm:items-center"
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6"
+        className="flex max-h-[90vh] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <span
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-zinc-950 ${posColor}`}
-          >
-            {player.position}
-          </span>
-          <div className="min-w-0 flex-1">
-            <h3 className="truncate text-lg font-semibold text-zinc-50">{player.full_name}</h3>
-            <p className="text-xs text-zinc-500">
-              {player.team ? `${player.team} · ` : ""}
-              {player.position}
-              {player.age != null ? ` · ${player.age}y` : ""}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 text-zinc-500 transition hover:text-zinc-200"
-            aria-label="Close"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Status chips */}
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="rounded bg-zinc-800 px-2 py-1 text-[11px] font-semibold text-zinc-300">
-            Rank #{player.rank}
-          </span>
-          {player.adp != null && (
-            <span className="rounded bg-zinc-800 px-2 py-1 text-[11px] font-semibold text-zinc-300">
-              ADP ~{player.adp.toFixed(1)}
-            </span>
-          )}
-          {inj.tone !== "none" && (
+        {/* Sticky header: name + status, always visible */}
+        <div className="shrink-0 border-b border-zinc-800 bg-zinc-900/95 p-5 pb-3 backdrop-blur">
+          <div className="flex items-center gap-3">
             <span
-              className={`rounded px-2 py-1 text-[11px] font-semibold ${
-                inj.tone === "out"
-                  ? "bg-red-500/20 text-red-300"
-                  : inj.tone === "doubtful"
-                    ? "bg-orange-500/20 text-orange-300"
-                    : "bg-amber-500/20 text-amber-300"
-              }`}
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-zinc-950 ${posColor}`}
             >
-              {inj.label}
-              {inj.part ? ` — ${inj.part}` : ""}
+              {player.position}
             </span>
-          )}
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-lg font-semibold text-zinc-50">{player.full_name}</h3>
+              <p className="text-xs text-zinc-500">
+                {player.team ? `${player.team} · ` : ""}
+                {player.position}
+                {player.age != null ? ` · ${player.age}y` : ""}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 text-zinc-500 transition hover:text-zinc-200"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Compact summary */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="rounded bg-zinc-800 px-2 py-1 text-[11px] font-semibold text-zinc-300">
+              Rank #{player.rank}
+            </span>
+            {player.adp != null && (
+              <span className="rounded bg-zinc-800 px-2 py-1 text-[11px] font-semibold text-zinc-300">
+                ADP ~{player.adp.toFixed(1)}
+              </span>
+            )}
+            {inj.tone !== "none" && (
+              <span
+                className={`rounded px-2 py-1 text-[11px] font-semibold ${
+                  inj.tone === "out"
+                    ? "bg-red-500/20 text-red-300"
+                    : inj.tone === "doubtful"
+                      ? "bg-orange-500/20 text-orange-300"
+                      : "bg-amber-500/20 text-amber-300"
+                }`}
+              >
+                {inj.label}
+                {inj.part ? ` — ${inj.part}` : ""}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Expert consensus strip */}
-        {info && (info.ecr || info.adp || info.bestWorst || info.rostered) && (
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {info.ecr && <Chip label="Overall (ECR)" value={info.ecr} />}
-            {info.adp && <Chip label="ADP" value={info.adp} />}
-            {info.bestWorst && <Chip label="Best / Worst" value={info.bestWorst} />}
-            {info.rostered && <Chip label="Rostered" value={info.rostered} />}
-          </div>
-        )}
-
-        {/* Outlook */}
-        <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Outlook</p>
-          {loading ? (
-            <div className="mt-2 flex items-center gap-2 text-sm text-zinc-400">
-              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-500 border-t-transparent" />
-              Loading outlook…
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto p-5 pt-4">
+          {info && (info.ecr || info.adp || info.bestWorst || info.rostered) && (
+            <div className="grid grid-cols-2 gap-2">
+              {info.ecr && <Chip label="Overall (ECR)" value={info.ecr} />}
+              {info.adp && <Chip label="ADP" value={info.adp} />}
+              {info.bestWorst && <Chip label="Best / Worst" value={info.bestWorst} />}
+              {info.rostered && <Chip label="Rostered" value={info.rostered} />}
             </div>
-          ) : error ? (
-            <p className="mt-1 text-sm text-zinc-400">{error}</p>
-          ) : info?.outlook ? (
-            <p className="mt-1 text-sm leading-relaxed text-zinc-200">{info.outlook}</p>
-          ) : (
-            <p className="mt-1 text-sm text-zinc-400">
-              No outlook available for this player in the free feed.
-            </p>
           )}
+
+          <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Outlook</p>
+            {loading ? (
+              <div className="mt-2 flex items-center gap-2 text-sm text-zinc-400">
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-500 border-t-transparent" />
+                Loading outlook…
+              </div>
+            ) : error ? (
+              <p className="mt-1 text-sm text-zinc-400">{error}</p>
+            ) : info?.outlook ? (
+              <p className="mt-1 text-sm leading-relaxed text-zinc-200">{info.outlook}</p>
+            ) : (
+              <p className="mt-1 text-sm text-zinc-400">
+                No outlook available for this player in the free feed.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
