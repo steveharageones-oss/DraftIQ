@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/AppShell";
+import { ShareButton } from "@/components/ShareButton";
 
 export default function Home() {
   return (
@@ -9,9 +10,7 @@ export default function Home() {
             <h1 className="text-lg font-bold leading-tight text-zinc-50">DraftIQ</h1>
             <p className="text-[11px] text-zinc-500">Fantasy draft assistant · saved on your device</p>
           </div>
-          <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
-            Free · no logins
-          </span>
+          <ShareButton />
         </div>
       </header>
       <main className="flex-1">
