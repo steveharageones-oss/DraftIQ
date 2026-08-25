@@ -123,6 +123,15 @@ export function useLeagues() {
     commit(next, nextActive);
   };
 
+  const resetLeague = (id: string) => {
+    commit(
+      leagues.map((l) =>
+        l.id === id ? { ...l, draftState: { draftedIds: [], otherTakenIds: [] } } : l,
+      ),
+      activeId ?? leagues[0]?.id ?? "",
+    );
+  };
+
   const activeLeague = leagues.find((l) => l.id === activeId) ?? leagues[0] ?? null;
   const activeLeagueId = activeLeague?.id ?? null;
 
@@ -136,5 +145,6 @@ export function useLeagues() {
     renameLeague,
     updateDraftState,
     deleteLeague,
+    resetLeague,
   };
 }

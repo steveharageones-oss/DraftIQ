@@ -26,6 +26,8 @@ export function AppShell() {
     selectLeague,
     renameLeague,
     updateDraftState,
+    resetLeague,
+    deleteLeague,
   } = useLeagues();
 
   const [showAdd, setShowAdd] = useState(false);
@@ -33,6 +35,20 @@ export function AppShell() {
   const [platform, setPlatform] = useState<LeaguePlatform>("manual");
   const [externalId, setExternalId] = useState("");
   const [renaming, setRenaming] = useState(false);
+  const [resetNonce, setResetNonce] = useState(0);
+
+  const resetConfirm = () => {
+    if (!activeLeague) return;
+    if (!window.confirm(`Reset "${activeLeague.name}"? This clears this league's picks.`)) return;
+    resetLeague(activeLeague.id);
+    setResetNonce((n) => n + 1);
+  };
+
+  const deleteConfirm = () => {
+    if (!activeLeague) return;
+    if (!window.confirm(`Delete "${activeLeague.name}"? This can't be undone.`)) return;
+    deleteLeague(activeLeague.id);
+  };
 
   const persistState = useCallback(
     (state: { draftedIds: string[]; otherTakenIds: string[] }) => {
@@ -176,14 +192,30 @@ export function AppShell() {
               ✎
             </button>
           </div>
-          <span className="ml-auto text-[11px] text-zinc-600">{PLATFORM_LABEL[activeLeague.platform]}</span>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={resetConfirm}
+              className="text-[11px] text-zinc-500 transition hover:text-zinc-200"
+            >
+              ↺ Reset
+            </button>
+            <button
+              type="button"
+              onClick={deleteConfirm}
+              className="text-[11px] text-zinc-500 transition hover:text-red-400"
+            >
+              Delete
+            </button>
+            <span className="text-[11px] text-zinc-600">{PLATFORM_LABEL[activeLeague.platform]}</span>
+          </div>
         </div>
       )}
 
       {/* Draft workspace for the active league */}
       {ready && activeLeague && (
         <DraftApp
-          key={activeLeague.id}
+          key={`${activeLeague.id}-${resetNonce}`}
           league={activeLeague}
           onStateChange={persistState}
         />
