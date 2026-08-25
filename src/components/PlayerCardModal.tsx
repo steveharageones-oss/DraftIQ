@@ -131,7 +131,7 @@ export function PlayerCardModal({
         </div>
 
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto p-5 pt-4">
+        <div className="min-h-0 flex-1 overflow-y-auto p-5 pt-4">
           {info && (info.ecr || info.adp || info.bestWorst || info.rostered) && (
             <div className="grid grid-cols-2 gap-2">
               {info.ecr && <Chip label="Overall (ECR)" value={info.ecr} />}
