@@ -93,8 +93,8 @@ export function AppShell() {
             onClick={() => selectLeague(l.id)}
             className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
               l.id === activeLeagueId
-                ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-200"
-                : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-zinc-100"
+                ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-200 shadow-sm shadow-emerald-500/10"
+                : "border-zinc-800/80 bg-zinc-900/50 text-zinc-400 hover:text-zinc-100"
             }`}
           >
             <span className={`h-2 w-2 rounded-full ${PLATFORM_COLOR[l.platform]}`} />
@@ -118,7 +118,7 @@ export function AppShell() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Yahoo Work League 2025"
-            className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-emerald-500"
+            className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/10"
           />
 
           <label className="mt-3 block text-xs font-medium text-zinc-400">Platform</label>
@@ -128,10 +128,10 @@ export function AppShell() {
                 key={p}
                 type="button"
                 onClick={() => setPlatform(p)}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                   platform === p
-                    ? "bg-zinc-100 text-zinc-950"
-                    : "bg-zinc-900 text-zinc-400 hover:text-zinc-100"
+                    ? "border-emerald-400/50 bg-emerald-500/15 text-emerald-300"
+                    : "border-transparent bg-zinc-900/70 text-zinc-400 hover:text-zinc-100"
                 }`}
               >
                 {PLATFORM_LABEL[p]}
@@ -148,7 +148,7 @@ export function AppShell() {
                 value={externalId}
                 onChange={(e) => setExternalId(e.target.value)}
                 placeholder="Leave blank to track manually"
-                className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-emerald-500"
+                className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/10"
               />
               <p className="mt-1 text-[11px] text-zinc-600">
                 Auto-import is a bonus. You can leave this blank now and track by hand.
@@ -161,7 +161,7 @@ export function AppShell() {
               type="button"
               onClick={submitAdd}
               disabled={!name.trim()}
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-40"
+              className="rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-600 px-4 py-2 text-sm font-bold text-zinc-950 shadow-md shadow-emerald-500/25 transition hover:from-emerald-300 hover:to-emerald-500 disabled:opacity-40 disabled:shadow-none"
             >
               Add league
             </button>
@@ -235,7 +235,7 @@ export function AppShell() {
 
       {/* League settings */}
       {activeLeague && showSettings && (
-        <div className="mt-2 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
+        <div className="mt-2 rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-3 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-zinc-300">Roster & scoring</p>
             <button type="button" onClick={() => setShowSettings(false)} className="text-xs text-zinc-500 hover:text-zinc-200">
@@ -252,7 +252,7 @@ export function AppShell() {
                   max={15}
                   value={activeLeague.slots[k]}
                   onChange={(e) => setSlot(k, e.target.value)}
-                  className="mt-1 w-full rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-center text-sm text-zinc-100 outline-none focus:border-emerald-500"
+                  className="mt-1 w-full rounded-md border border-zinc-800 bg-zinc-900/50 px-2 py-1.5 text-center text-sm tabular-nums text-zinc-100 outline-none transition focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/10"
                 />
               </label>
             ))}
@@ -269,10 +269,10 @@ export function AppShell() {
                   key={o.v}
                   type="button"
                   onClick={() => setPpr(o.v)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                     activeLeague.ppr === o.v
-                      ? "bg-emerald-500 text-zinc-950"
-                      : "bg-zinc-900 text-zinc-400 hover:text-zinc-100"
+                      ? "border-emerald-400/50 bg-emerald-500/15 text-emerald-300"
+                      : "border-transparent bg-zinc-900/70 text-zinc-400 hover:text-zinc-100"
                   }`}
                 >
                   {o.label}

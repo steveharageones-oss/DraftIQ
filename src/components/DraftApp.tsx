@@ -192,9 +192,21 @@ export function DraftApp({
           type="button"
           disabled={draftedIds.length === 0 || adviceLoading}
           onClick={handleSuggestTap}
-          className="w-full rounded-xl bg-emerald-500 py-3.5 text-base font-semibold text-zinc-950 transition hover:bg-emerald-400 active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-600 py-3.5 text-sm font-bold uppercase tracking-wide text-zinc-950 shadow-lg shadow-emerald-500/25 transition hover:from-emerald-300 hover:to-emerald-500 active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
         >
-          {adviceLoading ? "Thinking…" : "Suggest my next pick"}
+          {adviceLoading ? (
+            <>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-900/60 border-t-zinc-950" />
+              Thinking…
+            </>
+          ) : (
+            <>
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                <path d="M13 2 4.5 13.5H11L9.5 22 19 9.5h-6.5L13 2Z" />
+              </svg>
+              Suggest my next pick
+            </>
+          )}
         </button>
         <p className="mt-2 text-center text-[11px] text-zinc-600">
           {slotTemplate(league.slots, league.ppr)} ·{" "}
@@ -229,7 +241,7 @@ export function DraftApp({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search players or teams…"
-            className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-2.5 pl-10 pr-10 text-sm text-zinc-100 outline-none transition focus:border-emerald-500"
+            className="w-full rounded-xl border border-zinc-800/80 bg-zinc-900/50 py-2.5 pl-10 pr-10 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500/60 focus:bg-zinc-900/80 focus:ring-2 focus:ring-emerald-500/10"
           />
           {query && (
             <button
@@ -251,10 +263,10 @@ export function DraftApp({
             key={pos}
             type="button"
             onClick={() => setActivePos(pos)}
-            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition ${
+            className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition ${
               activePos === pos
-                ? "bg-zinc-100 text-zinc-950"
-                : "bg-zinc-900 text-zinc-400 hover:text-zinc-100"
+                ? "border-emerald-400/50 bg-emerald-500/15 text-emerald-300"
+                : "border-transparent bg-zinc-900/70 text-zinc-400 hover:text-zinc-100"
             }`}
           >
             {pos}
@@ -286,7 +298,7 @@ export function DraftApp({
             <span className="text-red-400">Out</span> · <span className="text-amber-300">Q</span>{" "}
             = questionable · <span className="text-orange-300">D</span> = doubtful
           </p>
-          <ul className="mt-1 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/40">
+          <ul className="mt-1 divide-y divide-zinc-800/60 overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/20 shadow-xl shadow-black/20">
             {visible.map((p) => (
               <PlayerRow
                 key={p.player_id}
@@ -313,13 +325,13 @@ export function DraftApp({
               <button
                 type="button"
                 onClick={() => setShowTaken((s) => !s)}
-                className="flex w-full items-center justify-between rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-300"
+                className="flex w-full items-center justify-between rounded-xl border border-amber-500/20 bg-amber-500/5 px-3.5 py-2.5 text-sm font-medium text-amber-300 transition hover:bg-amber-500/10"
               >
                 <span>Taken by other teams ({otherTakenIds.length})</span>
-                <span className="text-xs">{showTaken ? "Hide" : "Show"}</span>
+                <span className="text-xs text-amber-300/70">{showTaken ? "Hide" : "Show"}</span>
               </button>
               {showTaken && (
-                <ul className="mt-2 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/40">
+                <ul className="mt-2 divide-y divide-zinc-800/60 overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-900/20">
                   {takenPlayers.map((p) => (
                     <li
                       key={p.player_id}
